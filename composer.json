@@ -1,0 +1,19 @@
+  {
+    "name": "yukal/rest-php-vue",
+    "description": "REST API example",
+    "type": "project",
+    "license": "GPL",
+    "authors": [
+      {
+        "name": "Yukal Alexander",
+        "email": "yukal@email.ua"
+      }
+    ],
+    "minimum-stability": "stable",
+    "require": {},
+    "autoload": {
+      "psr-4": {
+        "ssf\\": "src/"
+      }
+    }
+  }

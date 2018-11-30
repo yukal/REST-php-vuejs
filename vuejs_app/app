@@ -1,0 +1,175 @@
+#!/usr/bin/sh
+
+# Author: Yukal Alexander <yukal@email.ua>
+# License MIT
+# Version: 1.0
+
+# Usage:
+#   $ ./app init            - Init Project (starts 'vue init webpack .')
+#   $ ./app serve           - Start Project (starts 'webpack-dev-server')
+#   $ ./app clean           - Remove Project
+#   $ ./app clean-folder    - Remove files and directories except for ./app
+#   $ ./app clean-docker    - Remove the Docker files of the project
+
+APPNAME="appvue"
+WORKDIR="/app"
+IMAGE="node:10-alpine"
+PORT_EXT=8181 #External
+PORT_INN=8080 #Internal
+PORTS="$PORT_EXT:$PORT_INN"
+# SCRIPT_NAME=$(basename $BASH_SOURCE)
+SCRIPT_NAME=$(basename $0)
+SCRIPT=$WORKDIR/$SCRIPT_NAME
+
+function PKG_EXISTS { return `which "$1" >/dev/null 2>&1`; }
+function IMG_ABSENT { return `docker images 2>/dev/null | grep -cm1 "$1"`; }
+function MSG_TITLE { echo -e "\n#\e[32m $1 ...\e[m\n# ========================\n"; }
+function MSG_ERROR { echo -e "\e[31m${1}\e[m"; }
+function UCFIRST { FIRST[1]=${1:0:1}; echo ${FIRST[@]^}${1:1}; }
+function CONFIRM {
+    printf '\e[1;37m%s\e[0m (y/n) ' "$1"
+    read -n 1 -rs
+    if [[ $REPLY =~ ^[Yy]$ ]]; 
+        then printf '\e[32m%s\e[0m\n' 'yes'; return 0
+        else printf '\e[31m%s\e[0m\n' 'no'; return 1
+    fi
+}
+function REQUIRED {
+    if ! PKG_EXISTS "$1"; then
+        pkgname=$(UCFIRST "$1")
+        MSG_ERROR "$pkgname requred! Please install it first"
+        exit 1
+    fi
+}
+
+# clean_folder() {
+#     # find . -mindepth 1 -maxdepth 1 -not -name "$SCRIPT_NAME" -print0 | xargs -0 -I {} rm -frv {}
+#     find . -mindepth 1 -maxdepth 1 -not -name "$SCRIPT_NAME" -print0 | xargs -0 -I {} rm -fr {}
+# }
+
+# clean_docker() {
+#     MSG_TITLE "Trying to remove docker files"
+
+#     # Remove container and volumes
+#     docker container rm -fv "$APPNAME"
+
+#     # Remove image and network
+#     docker image rm -f "$APPNAME"
+#     docker network rm "${APPNAME}_network"
+
+#     # Remove unnamed images and volumes
+#     if CONFIRM "Remove unnamed images and volumes?"; then
+#         docker rmi $(docker images -qf "dangling=true")
+#     fi
+# }
+
+# clean_project() {
+#     clean_docker;
+#     clean_folder;
+# }
+
+read -r -d '' DOCKERFILE << EOM
+FROM $IMAGE
+#RUN npm install -g vue-cli
+EXPOSE $PORT_EXT
+CMD ["npm", "run", "dev"]
+EOM
+
+if [ ! -f /.dockerenv ]; then
+    # Entry for a host machine environment
+
+    REQUIRED "docker";
+
+    case "$1" in
+
+    # Removes the project source
+    clean)
+        clean_docker;
+        # clean_folder;
+        exit 0;
+        ;;
+
+    # Removes files and directories except for ./app
+    # clean-folder)
+    #     clean_folder;
+    #     exit 0;
+    #     ;;
+
+    # Removes the Docker files of the project
+    # clean-docker)
+    #     clean_docker;
+    #     exit 0;
+    #     ;;
+
+    init)
+        #if CONFIRM "Remove old docker files of the project?"; then
+            #clean_docker;
+            # clean_folder;
+        #fi
+
+        #echo -e "$DOCKERFILE" > Dockerfile;
+        docker run -e "UID=$UID" -e "GID=$GROUPS" -it --rm --name $APPNAME -p "$PORTS" -v "$PWD":"$WORKDIR" -w "$WORKDIR" $IMAGE sh $SCRIPT $1
+        #docker run -it --rm --name $APPNAME -p "$PORTS" -v "$PWD":"$WORKDIR" -w "$WORKDIR" $IMAGE sh $SCRIPT $1 "$UID:$GROUPS"
+        exit 0
+        ;;
+
+    bash|ash|sh)
+        docker run -e "UID=$UID" -e "GID=$GROUPS" -it --rm --name $APPNAME -p "$PORTS" -v "$PWD":"$WORKDIR" -w "$WORKDIR" $IMAGE $1
+        exit 0
+        ;;
+
+    serve)
+        # Build an image
+        if IMG_ABSENT "$APPNAME"; then
+            MSG_TITLE "Building an image"
+            docker build --no-cache --tag $APPNAME .
+        fi
+
+        # Start project
+        docker run -e "UID=$UID" -e "GID=$GROUPS" -it --rm --name $APPNAME -p "$PORTS" -v "$PWD":"$WORKDIR" -w "$WORKDIR" $APPNAME
+        exit 0
+        ;;
+    *)
+        # echo $"Usage: $0 {init|serve|bash|ash|sh|clean|clean-folder|clean-docker}"
+        echo $"Usage: $0 {init|serve|bash|clean}"
+        exit 1
+
+    esac
+
+else
+    # Entry for an image environment
+
+    REQUIRED "node";
+    REQUIRED "npm";
+
+    # Init project
+    if [ "$1" == "init" ]; then
+        if ! PKG_EXISTS "vue"; then 
+            MSG_TITLE "Install vue-cli"
+            npm install -g vue-cli
+        fi
+
+        if [ ! -f "$WORKDIR/package.json" ]; then
+            MSG_TITLE "Init project"
+            # vue init webpack .
+            vue init bootstrap-vue/webpack .
+        fi
+    fi
+
+    # Install dependencies
+    if [ ! -d "$WORKDIR/node_modules" ]; then
+        MSG_TITLE "Installing project dependencies"
+        npm install
+    fi
+
+    # Access listening on the host machine
+    LISTEN_LOCAL() { return `cat package.json | grep -cm1 "webpack-dev-server --host 0.0.0.0"`; }
+    if LISTEN_LOCAL; then
+        sed -i 's/"dev": "webpack-dev-server /"dev": "webpack-dev-server --host 0.0.0.0 /' $WORKDIR/package.json
+    fi
+
+    # Fix owner
+    chown -R $UID:$GID $WORKDIR
+fi
+
+exit 0;
