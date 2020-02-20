@@ -1,10 +1,8 @@
 <?php
 
-namespace ssf\controllers;
-
 /**
  * Class DefaultController
- * 
+ *
  * @package Controllers
  * @author Yukal Alexander <yukal@email.ua>
  * @copyright 2018 Yukal Alexander
@@ -12,15 +10,17 @@ namespace ssf\controllers;
  * @version 1.0.0
  */
 
-use \ssf\engine\RestException;
+namespace ssf\controllers;
 
-class DefaultController {
+class DefaultController
+{
 
     /**
      * actionMain
      * @return string Method name
      */
-    public function actionMain() {
+    public function actionMain()
+    {
         $response = [
             'action' => __METHOD__,
             'method' => $_SERVER['REQUEST_METHOD'],
@@ -31,11 +31,11 @@ class DefaultController {
         return $response;
     }
 
-    public function actionGet() {
+    public function actionGet()
+    {
         return $this->actionMain();
         // $data = [__DIR__, __FILE__, __NAMESPACE__, __CLASS__, __METHOD__, __FUNCTION__, __LINE__];
         // printf("<pre>%s\n", implode("\n", $data));
         // echo static::class;
     }
-
 }

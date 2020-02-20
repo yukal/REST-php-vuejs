@@ -1,10 +1,8 @@
 <?php
 
-namespace ssf\engine;
-
 /**
  * Class RestException
- * 
+ *
  * @package Engine
  * @author Yukal Alexander <yukal@email.ua>
  * @copyright 2018 Yukal Alexander
@@ -12,9 +10,10 @@ namespace ssf\engine;
  * @version 1.0.0
  */
 
-use \Exception;
+namespace ssf\engine;
 
-class RestException extends Exception {
+class RestException extends \Exception
+{
 
     /**
      * Constructor
@@ -22,13 +21,14 @@ class RestException extends Exception {
      * @param integer $code
      * @param string $msg [optional]
      */
-    public function __construct(int $code, $msg='') {
+    public function __construct(int $code, $msg = '')
+    {
         parent::__construct($message, $code, $previous);
 
         $errorInfo = $this->getHttpCode($code);
         header("HTTP/1.1 {$code} {$errorInfo}", 1, $code);
 
-        if (! empty($msg))
+        if (!empty($msg))
             echo json_encode(['error' => $msg]);
         exit;
     }
@@ -39,7 +39,8 @@ class RestException extends Exception {
      * @param integer $code
      * @return string Message
      */
-    private function getHttpCode(int $code) {
+    private function getHttpCode(int $code)
+    {
         $codes = [
 
             // 1xx: Informational
@@ -133,5 +134,4 @@ class RestException extends Exception {
 
         return $codes[$code];
     }
-
 }

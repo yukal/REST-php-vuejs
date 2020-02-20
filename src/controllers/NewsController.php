@@ -1,10 +1,8 @@
 <?php
 
-namespace ssf\controllers;
-
 /**
  * Class NewsController
- * 
+ *
  * @package Controllers
  * @author Yukal Alexander <yukal@email.ua>
  * @copyright 2018 Yukal Alexander
@@ -12,10 +10,13 @@ namespace ssf\controllers;
  * @version 1.0.0
  */
 
+namespace ssf\controllers;
+
 use \ssf\engine\RestException;
 use \ssf\models\NewsModel;
 
-class NewsController {
+class NewsController
+{
 
     /**
      * actionGet (Read)
@@ -23,7 +24,8 @@ class NewsController {
      * @throws RestException 404 Not Found;
      * @return array Rows
      */
-    public function actionGet($id=0) {
+    public function actionGet($id = 0)
+    {
         $model = new NewsModel();
         $data = $model->get($id);
 
@@ -39,14 +41,15 @@ class NewsController {
      * @throws RestException 404 Not Found;
      * @return array Data of the last inserted Id
      */
-    public function actionPut(array $data) {
+    public function actionPut(array $data)
+    {
         $model = new NewsModel();
         $res = $model->add($data);
 
         if ($res instanceof \PDOStatement) {
             $errorInfo = $res->errorInfo();
 
-            $response = ['error'=>[
+            $response = ['error' => [
                 'code' => $errorInfo[0],
                 'message' => $errorInfo[2],
             ]];
@@ -63,14 +66,15 @@ class NewsController {
      * @throws RestException 404 Not Found;
      * @return bool
      */
-    public function actionPatch(int $id, array $data) {
+    public function actionPatch(int $id, array $data)
+    {
         $model = new NewsModel();
         $res = $model->update($id, $data);
 
         if ($res instanceof \PDOStatement) {
             $errorInfo = $res->errorInfo();
 
-            $response = ['error'=>[
+            $response = ['error' => [
                 'code' => $errorInfo[0],
                 'message' => $errorInfo[2],
             ]];
@@ -87,7 +91,8 @@ class NewsController {
      * @throws RestException 404 Not Found;
      * @return bool
      */
-    public function actionDelete(int $id) {
+    public function actionDelete(int $id)
+    {
         $model = new NewsModel();
         $res = $model->delete($id);
 
@@ -96,5 +101,4 @@ class NewsController {
 
         return $res;
     }
-
 }

@@ -1,10 +1,8 @@
 <?php
 
-namespace ssf\engine;
-
 /**
  * Class db
- * 
+ *
  * @package Engine
  * @author Yukal Alexander <yukal@email.ua>
  * @copyright 2018 Yukal Alexander
@@ -12,9 +10,10 @@ namespace ssf\engine;
  * @version 1.0.0
  */
 
-use PDO;
+namespace ssf\engine;
 
-class db extends PDO {
+class db extends \PDO
+{
     /**
      * Constructor
      *
@@ -24,9 +23,10 @@ class db extends PDO {
      * @param string $dbhost
      * @param integer $dbport
      */
-    public function __construct($dbuser='user', $dbpass='pass', $dbname='db', $dbhost='mariadb', $dbport=3306) {
+    public function __construct($dbuser = 'user', $dbpass = 'pass', $dbname = 'db', $dbhost = 'mariadb', $dbport = 3306)
+    {
         $dsn = "mysql:host={$dbhost};port={$dbport};dbname={$dbname}";
-        $options = array(PDO::MYSQL_ATTR_INIT_COMMAND => 'SET NAMES utf8');
+        $options = array(\PDO::MYSQL_ATTR_INIT_COMMAND => 'SET NAMES utf8');
 
         parent::__construct($dsn, $dbuser, $dbpass, $params);
     }
@@ -37,7 +37,8 @@ class db extends PDO {
      * @param resource $sth PDO State Handle
      * @return bool
      */
-    public function checkErrors(&$sth) {
+    public function checkErrors(&$sth)
+    {
         if ($sth->errorCode() === '00000')
             return true;
 
@@ -49,5 +50,4 @@ class db extends PDO {
         echo json_encode($response);
         exit;
     }
-
 }
