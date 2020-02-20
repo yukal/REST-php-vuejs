@@ -1,4 +1,4 @@
-# REST API using PHP and Vuejs
+# REST API Example usage based on PHP and Vuejs
 Example of REST API including PHP/Vuejs, OOP, MVC, Composer autoloader
 
 ### Directory Structure
